@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>COVID-19 - Países</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #2e5c9a;
+    }
+
+    p.descricao {
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #e6f0ff;
+    }
+
+    .brasil {
+      background-color: #d0f5d8;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 13px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="titulo">COVID-19 - Dados por País</h1>
+  <p class="descricao">Tabela com os dados atuais de casos, mortes e recuperações por país. O Brasil está destacado para facilitar a visualização.</p>
+
+  <table id="tabela-paises">
+    <thead>
+      <tr>
+        <th>País</th>
+        <th>Casos Confirmados</th>
+        <th>Mortes</th>
+        <th>Recuperados</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <footer>
+    <p>Atividade desenvolvida por João Alves - Sistemas de Informação</p>
+    <p>Dados obtidos em tempo real via API passada pelo professor</p>
+  </footer>
+
+  <script>
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    document.getElementById("titulo").innerText += ` (Atualizado em ${hoje})`;
+
+    fetch("https://covid19-brazil-api.vercel.app/api/report/v1/countries")
+      .then(res => res.json())
+      .then(data => {
+        const paises = data.data;
+        const tbody = document.querySelector("#tabela-paises tbody");
+
+        paises.forEach(pais => {
+          const linha = document.createElement("tr");
+
+          if (pais.country.toLowerCase() === "brazil") {
+            linha.classList.add("brasil");
+          }
+
+          linha.innerHTML = `
+            <td>${pais.country}</td>
+            <td>${pais.cases}</td>
+            <td>${pais.deaths}</td>
+            <td>${pais.recovered}</td>
+          `;
+
+          tbody.appendChild(linha);
+        });
+      });
+  </script>
+</body>
+</html>

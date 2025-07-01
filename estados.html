@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>COVID-19 - Estados do Brasil</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #004d4d;
+    }
+
+    p.descricao {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background-color: white;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e0f7fa;
+    }
+
+    .acima-media {
+      background-color: #ffe0e0;
+    }
+
+    tfoot {
+      background-color: #e7f5ff;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 13px;
+      color: gray;
+    }
+
+    #relacoes {
+      margin-top: 30px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="titulo">COVID-19 - Estados do Brasil</h1>
+  <p class="descricao">Esses dados foram obtidos da API pública do COVID-19. Abaixo estão os números por estado, incluindo médias e destaques.</p>
+
+  <table id="tabela-estados">
+    <thead>
+      <tr>
+        <th>Nome do Estado</th>
+        <th>UF</th>
+        <th>Casos</th>
+        <th>Suspeitos</th>
+        <th>Mortes</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot></tfoot>
+  </table>
+
+  <div id="relacoes">
+    <p id="maior-relacao"></p>
+    <p id="menor-relacao"></p>
+  </div>
+
+  <footer>
+    <p>Atividade desenvolvida por João Alves - Sistemas de Informação</p>
+    <p>Dados obtidos em tempo real via API pelo link do professor</p>
+  </footer>
+
+  <script>
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    document.getElementById("titulo").innerText += ` (Atualizado em ${hoje})`;
+
+    fetch("https://covid19-brazil-api.vercel.app/api/report/v1")
+      .then(res => res.json())
+      .then(data => {
+        const estados = data.data;
+        const tbody = document.querySelector("#tabela-estados tbody");
+        const tfoot = document.querySelector("#tabela-estados tfoot");
+
+        let totalCasos = 0, totalSuspeitos = 0, totalMortes = 0;
+        let relacoes = [];
+
+        estados.forEach(estado => {
+          totalCasos += estado.cases;
+          totalSuspeitos += estado.suspects;
+          totalMortes += estado.deaths;
+
+          relacoes.push({
+            uf: estado.uf,
+            state: estado.state,
+            casos: estado.cases,
+            mortes: estado.deaths,
+            relacao: estado.deaths > 0 ? estado.cases / estado.deaths : 0
+          });
+        });
+
+        const mediaCasos = totalCasos / estados.length;
+        const mediaSuspeitos = totalSuspeitos / estados.length;
+        const mediaMortes = totalMortes / estados.length;
+
+        estados.forEach(estado => {
+          const linha = document.createElement("tr");
+
+          if (estado.deaths > mediaMortes) {
+            linha.classList.add("acima-media");
+          }
+
+          linha.innerHTML = `
+            <td>${estado.state}</td>
+            <td>${estado.uf}</td>
+            <td>${estado.cases}</td>
+            <td>${estado.suspects}</td>
+            <td>${estado.deaths}</td>
+          `;
+
+          tbody.appendChild(linha);
+        });
+
+        tfoot.innerHTML = `
+          <tr>
+            <td colspan="2">MÉDIA</td>
+            <td>${Math.round(mediaCasos)}</td>
+            <td>${Math.round(mediaSuspeitos)}</td>
+            <td>${Math.round(mediaMortes)}</td>
+          </tr>
+        `;
+
+        const maior = relacoes.reduce((a, b) => a.relacao > b.relacao ? a : b);
+        const menor = relacoes.reduce((a, b) => (b.relacao > 0 && b.relacao < a.relacao) ? b : a);
+
+        document.getElementById("maior-relacao").innerText =
+          `Maior relação Casos/Mortes: ${maior.state} (${maior.uf}) - ${maior.relacao.toFixed(2)}`;
+
+        document.getElementById("menor-relacao").innerText =
+          `Menor relação Casos/Mortes: ${menor.state} (${menor.uf}) - ${menor.relacao.toFixed(2)}`;
+      });
+  </script>
+</body>
+</html>
